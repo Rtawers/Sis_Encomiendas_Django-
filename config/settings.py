@@ -1,18 +1,23 @@
 from pathlib import Path
-import os # <--- Agregado
+import os
 from decouple import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+# =========================
+# BASE
+# =========================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# =========================
+# SECURITY
+# =========================
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast=bool, default=False)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
-# --- Se eliminaron las líneas duplicadas de DEBUG y ALLOWED_HOSTS aquí ---
-
-# Application definition
+# =========================
+# APPLICATIONS
+# =========================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -20,11 +25,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Apps del proyecto
     'envios',
     'clientes',
-    'rutas',
+    'rutas.apps.RutasConfig',
 ]
 
+# =========================
+# MIDDLEWARE
+# =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -37,16 +47,31 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
+# =========================
+# TEMPLATES (CLAVE)
+# =========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+
+        # ✔ Directorio global de templates
+        'DIRS': [BASE_DIR / 'templates'],
+
         'APP_DIRS': True,
+
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+
+                # ✔ Necesario para auth en templates
                 'django.contrib.auth.context_processors.auth',
+
+                # ✔ Messages framework
                 'django.contrib.messages.context_processors.messages',
+
+                
+                'envios.context_processors.estadisticas_globales',
             ],
         },
     },
@@ -54,34 +79,75 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database
+# =========================
+# DATABASE (POSTGRES DOCKER)
+# =========================
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE'),
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
+        'HOST': config('DB_HOST', default='db'),  # IMPORTANTE en Docker
         'PORT': config('DB_PORT', default='5432'),
     }
 }
 
-# Password validation
+# =========================
+# PASSWORD VALIDATION
+# =========================
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+# =========================
+# INTERNATIONALIZATION
+# =========================
 LANGUAGE_CODE = 'es-pe'
 TIME_ZONE = 'America/Lima'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static') # <--- Agregado para Nginx
+# =========================
+# STATIC FILES (PRO)
+# =========================
 
+# URL pública
+STATIC_URL = '/static/'
+
+# ✔ Archivos que tú creas (desarrollo)
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# ✔ Archivos recolectados (producción)
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+# =========================
+# MEDIA FILES
+# =========================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# =========================
+# AUTHENTICATION (IMPORTANTE)
+# =========================
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# =========================
+# DEFAULTS
+# =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Personalización del Admin Site
+ADMIN_SITE_HEADER = 'Sistema de Gestión de Encomiendas'
+ADMIN_SITE_TITLE = 'Encomiendas Admin'
+ADMIN_INDEX_TITLE = 'Panel de Administración del Sistema'
+

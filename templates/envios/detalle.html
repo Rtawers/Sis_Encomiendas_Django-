@@ -1,0 +1,258 @@
+{# templates/envios/detalle.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ encomienda.codigo }} — Detalle{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3">
+        <i class="fas fa-box me-2"></i>{{ encomienda.codigo }}
+    </h2>
+    <div>
+        <a href="{% url 'encomienda_lista' %}" class="btn btn-outline-secondary me-2">
+            Volver al Listado
+        </a>
+        {% if not encomienda.esta_entregada %}
+            <button class="btn btn-warning" data-bs-toggle="modal"
+                    data-bs-target="#modalEstado">
+                Cambiar estado
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- IZQUIERDA -->
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <h5 class="mb-0">Información de la encomienda</h5>
+                <span class="badge-estado badge-{{ encomienda.estado }}">
+                    {{ encomienda.get_estado_display }}
+                </span>
+            </div>
+
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Remitente</p>
+                        <h6>{{ encomienda.remitente.nombre_completo }} ({{ encomienda.remitente.nro_doc }})</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Destinatario</p>
+                        <h6>{{ encomienda.destinatario.nombre_completo }} ({{ encomienda.destinatario.nro_doc }})</h6>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Ruta</p>
+                        <h6>{{ encomienda.ruta.codigo }}: {{ encomienda.ruta.origen }} → {{ encomienda.ruta.destino }}</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Peso</p>
+                        <h6>{{ encomienda.peso_kg|floatformat:2 }} kg</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Volumen</p>
+                        <h6>{{ encomienda.volumen_cm3|floatformat:2 }} cm³</h6>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Costo</p>
+                        <h6>S/ {{ encomienda.costo_envio|floatformat:2 }}</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Fecha Registro</p>
+                        <h6>{{ encomienda.fecha_registro|date:'d/m/Y H:i' }}</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Entrega Estimada</p>
+                        <h6>{{ encomienda.fecha_entrega_est|date:'d/m/Y'|default:'N/A' }}</h6>
+                    </div>
+                </div>
+
+                {% if encomienda.observaciones %}
+                <div class="mt-3">
+                    <p class="text-muted mb-1">Observaciones</p>
+                    <p>{{ encomienda.observaciones }}</p>
+                </div>
+                {% endif %}
+
+                {% if encomienda.tiene_retraso %}
+                <div class="alert alert-danger mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Esta encomienda tiene <strong>{{ encomienda.dias_en_transito }} días</strong> en tránsito
+                    y superó la fecha de entrega estimada.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- DERECHA -->
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Historial de estados</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>De</th>
+                            <th>A</th>
+                            <th>Empleado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in historial %}
+                        <tr>
+                            <td>{{ h.fecha_cambio|date:'d/m/Y H:i' }}</td>
+                            <td>
+                                <span class="badge-estado badge-{{ h.estado_anterior }}">
+                                    {{ h.get_estado_anterior_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-estado badge-{{ h.estado_nuevo }}">
+                                    {{ h.get_estado_nuevo_display }}
+                                </span>
+                            </td>
+                            <td>{{ h.empleado.get_full_name|default:h.empleado.nombres }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">Sin cambios registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MEJORADO -->
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-labelledby="modalEstadoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow">
+
+            <form method="post" action="{% url 'encomienda_cambiar_estado' encomienda.pk %}">
+                {% csrf_token %}
+
+                <!-- HEADER -->
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalEstadoLabel">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Cambiar estado de {{ encomienda.codigo }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+
+                    <div class="row">
+                        <!-- SELECT -->
+                        <div class="col-md-6 mb-3">
+                            <label for="id_estado" class="form-label fw-bold">
+                                Nuevo Estado
+                            </label>
+                            <select name="estado" id="id_estado" class="form-select">
+                                 <option value="">-- Seleccione un estado --</option>
+
+                                {% for valor, etiqueta in estados %}
+                                 <option value="{{ valor }}" {% if encomienda.estado == valor %}selected{% endif %}>
+                                    {{ etiqueta }}
+                                </option>
+                            {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- INFO ACTUAL -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Estado Actual</label>
+                            <div>
+                                <span class="badge-estado badge-{{ encomienda.estado }}">
+                                    {{ encomienda.get_estado_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OBSERVACIÓN -->
+                    <div class="mb-3">
+                        <label for="id_observacion" class="form-label fw-bold">
+                            Observación (opcional)
+                        </label>
+                        <textarea name="observacion"
+                                  id="id_observacion"
+                                  rows="3"
+                                  class="form-control"
+                                  placeholder="Ej: Cliente solicitó cambio de destino..."></textarea>
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    console.log("Bootstrap:", window.bootstrap);
+
+    if (typeof bootstrap === 'undefined') {
+        console.error("Bootstrap NO está cargado");
+        return;
+    }
+
+    const modalElement = document.getElementById('modalEstado');
+
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true
+        });
+
+        modalElement.addEventListener('show.bs.modal', function () {
+            const select = document.getElementById('id_estado');
+            if (select) {
+                select.value = "{{ encomienda.estado }}";
+            }
+        });
+
+    } else {
+        console.warn("Modal no encontrado");
+    }
+});
+</script>
+{% endblock %}

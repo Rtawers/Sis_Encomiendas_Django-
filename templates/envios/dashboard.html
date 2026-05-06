@@ -1,0 +1,64 @@
+{# templates/envios/dashboard.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — Sistema de Encomiendas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="h3"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+    </div>
+</div>
+
+<!-- Tarjetas de estadísticas -->
+<div class="row mb-4">
+    {% for card in stats_cards %}
+        {# Usamos el partial de tarjeta de estadística, que crearemos luego #}
+        {% include 'partials/stat_card.html' with label=card.label valor=card.valor color=card.color icono=card.icono %}
+    {% endfor %}
+</div>
+
+<!-- Últimas encomiendas -->
+<div class="card shadow">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Últimas encomiendas registradas</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Remitente</th>
+                    <th>Ruta</th>
+                    <th>Estado</th>
+                    <th>Registro</th>
+                    <th></th> {# Para el botón Ver #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for enc in ultimas %}
+                <tr class="fila-link" data-href="{% url 'encomienda_detalle' enc.pk %}">
+                    <td><code>{{ enc.codigo }}</code></td>
+                    <td>{{ enc.remitente.nombre_completo }}</td> {# Usa la @property del modelo Cliente #}
+                    <td>{{ enc.ruta.origen }} → {{ enc.ruta.destino }}</td>
+                    <td>
+                        <span class="badge-estado badge-{{ enc.estado }}">
+                            {{ enc.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ enc.fecha_registro|date:'d/m/Y H:i' }}</td>
+                    <td>
+                        <a href="{% url 'encomienda_detalle' enc.pk %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">No se encontraron encomiendas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

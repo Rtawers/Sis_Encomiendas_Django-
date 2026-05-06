@@ -1,0 +1,33 @@
+{# templates/partials/modal_cambiar_estado.html #}
+{% load static %}
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-labelledby="modalEstadoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'encomienda_cambiar_estado' encomienda.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEstadoLabel">Cambiar Estado de Encomienda {{ encomienda.codigo }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_nuevo_estado_modal" class="form-label">Nuevo Estado</label>
+                        <select class="form-select" id="id_nuevo_estado_modal" name="estado" required>
+                            {% for valor, etiqueta in encomienda.EstadoChoices.choices %}
+                                <option value="{{ valor }}">{{ etiqueta }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_observacion_modal" class="form-label">Observaciones (opcional)</label>
+                        <textarea class="form-control" id="id_observacion_modal" name="observacion" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

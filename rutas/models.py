@@ -16,6 +16,10 @@ class Ruta(models.Model):
         default=EstadoGeneral.ACTIVO
     )
 
+    @property
+    def esta_activa(self):
+        return self.estado == EstadoGeneral.ACTIVO
+
     def __str__(self):
         return f'{self.codigo}: {self.origen} → {self.destino}'
 
