@@ -6,7 +6,7 @@
 
 Aplicación web full-stack para la administración de envíos de paquetes, con gestión de clientes, rutas, encomiendas y trazabilidad completa de estados. Construida con Django y desplegada sobre una arquitectura contenerizada con Docker.
 
-**Universidad Señor de Sipán — Taller de Lenguajes de Programación — IX Ciclo**
+Universidad Señor de Sipán — Taller de Lenguajes de Programación — IX Ciclo
 
 
 
@@ -47,7 +47,7 @@ Aplicación web full-stack para la administración de envíos de paquetes, con g
 
 ### Pasos
 
-**1. Clonar el repositorio**
+1. Clonar el repositorio
 ```bash
 git clone https://github.com/Rtawers/Sis_Encomiendas_Django-.git
 cd Sis_Encomiendas_Django-
@@ -126,18 +126,3 @@ docker compose exec db psql -U encomiendas_user -d encomiendas_db
 # Detener todos los servicios
 docker compose down
 ```
-
----
-
-## Flujo de estados de una encomienda
-
-```
-Pendiente → En tránsito → En destino → Entregado
-                ↓
-            Devuelto
-```
-
-Cada cambio de estado se registra automáticamente en el historial con fecha, empleado responsable y observación opcional.
-
----
-
